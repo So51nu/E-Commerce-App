@@ -30,7 +30,9 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.6
-
+  http: ^1.2.1
+  carousel_slider: ^5.0.0
+  cached_network_image: ^3.3.1 # Add this line
 flutter_native_splash:
   color: "#ffffff"
   image: assets/images/splash.png

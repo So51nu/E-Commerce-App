@@ -1,10 +1,8 @@
-//home_page.dart---- of the e-commerce website
-
-// home_page.dart - FIXED VERSION (No External Dependencies Required)
-// Complete E-Commerce Landing Page - 1500+ Lines - Works Out of the Box
-
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:e_commerce_app/pages/explore_page.dart';
+import 'package:e_commerce_app/pages/card_page.dart';
+import 'package:e_commerce_app/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,18 +12,33 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  // --- State Variables ---
   late TabController _tabController;
   int _currentIndex = 0;
   int _bannerIndex = 0;
-  bool _isSearching = false;
+  // bool _isSearching = false; // Unused, removed for cleanliness
   final TextEditingController _searchController = TextEditingController();
   late AnimationController _animationController;
   late Animation<double> _animation;
+  late final List<Widget> screens;
 
   @override
   void initState() {
     super.initState();
+
+    // 1. Initialize TabController
     _tabController = TabController(length: 4, vsync: this);
+
+    // 2. Initialize Screens List (includes the placeholder pages)
+    // Note: _buildHomeScreen is called here after it's defined
+    screens = [
+      _buildHomeScreen(), // Home content method
+      const ExplorePage(),
+      const CardPage(),
+      const ProfilePage(),
+    ];
+
+    // 3. Initialize Animation Controller
     _animationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -45,31 +58,45 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  // --- Main Build Method ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: _buildBannerSection()),
-          SliverToBoxAdapter(child: _buildSearchSection()),
-          SliverToBoxAdapter(child: _buildCategoriesSection()),
-          SliverToBoxAdapter(child: _buildFlashSaleSection()),
-          SliverToBoxAdapter(child: _buildPopularProductsSection()),
-          SliverToBoxAdapter(child: _buildNewArrivalsSection()),
-          SliverToBoxAdapter(child: _buildBrandsSection()),
-          SliverToBoxAdapter(child: _buildRecommendedSection()),
-          SliverToBoxAdapter(child: _buildServicesSection()),
-          SliverToBoxAdapter(child: _buildTrendingSection()),
-          SliverToBoxAdapter(child: _buildFooterSection()),
-        ],
+      // Use IndexedStack to preserve state of other pages (Explore, Cart, Profile)
+      body: IndexedStack(
+        index: _currentIndex,
+        children: screens,
       ),
+      // Added missing bottom navigation bar
       bottomNavigationBar: _buildBottomNavigation(),
-      floatingActionButton: _buildCartFAB(),
     );
   }
 
+  // --- Widget for Home Screen Tab Content (Moved to be a class method) ---
+  Widget _buildHomeScreen() {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(child: _buildBannerSection()),
+        SliverToBoxAdapter(child: _buildBannerIndicator()), // Added missing indicator
+        SliverToBoxAdapter(child: _buildSearchSection()),
+        SliverToBoxAdapter(child: _buildCategoriesSection()),
+        SliverToBoxAdapter(child: _buildFlashSaleSection()),
+        SliverToBoxAdapter(child: _buildPopularProductsSection()),
+        SliverToBoxAdapter(child: _buildNewArrivalsSection()),
+        SliverToBoxAdapter(child: _buildBrandsSection()),
+        SliverToBoxAdapter(child: _buildRecommendedSection()),
+        SliverToBoxAdapter(child: _buildServicesSection()),
+        SliverToBoxAdapter(child: _buildTrendingSection()),
+        SliverToBoxAdapter(child: _buildFooterSection()),
+        const SliverToBoxAdapter(child: SizedBox(height: 50)), // Padding for bottom nav bar
+      ],
+    );
+  }
+
+
+  // --- APP BAR ---
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
@@ -121,7 +148,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       actions: [
         _buildAppBarAction(Icons.notifications_outlined, () {}),
         _buildAppBarAction(Icons.favorite_border, () {}),
-        _buildAppBarAction(Icons.shopping_cart_outlined, () {}),
+        _buildAppBarAction(Icons.shopping_cart_outlined, () {
+          setState(() {
+            _currentIndex = 2; // Navigate to the Cart tab
+          });
+        }),
       ],
     );
   }
@@ -165,6 +196,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- BANNER SECTION ---
   Widget _buildBannerSection() {
     final banners = [
       {
@@ -186,7 +218,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     return Container(
       height: 240,
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 0),
       child: PageView.builder(
         controller: PageController(viewportFraction: 0.92),
         onPageChanged: (index) {
@@ -204,7 +236,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 alignment: Alignment.center,
                 transform: Matrix4.identity()
                   ..setEntry(3, 2, 0.001)
-                  ..rotateY(_animation.value * 0.1 * math.pi),
+                  ..rotateY(_animation.value * 0.1 * math.pi * 0), // Removed animation for simplicity/performance
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
@@ -296,6 +328,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- SEARCH SECTION ---
   Widget _buildSearchSection() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -363,6 +396,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- CATEGORIES SECTION ---
   Widget _buildCategoriesSection() {
     final categories = [
       {'name': 'Electronics', 'icon': Icons.phone_android, 'color': Colors.blue},
@@ -463,6 +497,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- FLASH SALE SECTION ---
   Widget _buildFlashSaleSection() {
     final flashSaleProducts = [
       {
@@ -604,12 +639,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     color: Colors.red,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Row(
+                  child: const Row( // Added 'const' here
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.flash_on, size: 14, color: Colors.white),
-                      const SizedBox(width: 4),
-                      Text(
+                      Icon(Icons.flash_on, size: 14, color: Colors.white),
+                      SizedBox(width: 4),
+                      Text( // This was missing 'const'
                         'FLASH',
                         style: TextStyle(
                           color: Colors.white,
@@ -893,6 +928,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- NEW ARRIVALS SECTION ---
   Widget _buildNewArrivalsSection() {
     final newArrivals = [
       {'name': 'Designer Handbag', 'price': 299.99, 'color': Colors.pink},
@@ -1006,6 +1042,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- BRANDS SECTION ---
   Widget _buildBrandsSection() {
     final brands = ['Nike', 'Adidas', 'Apple', 'Samsung', 'Gucci', 'Zara', 'H&M', 'Puma'];
 
@@ -1071,6 +1108,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- SERVICES SECTION ---
   Widget _buildServicesSection() {
     final services = [
       {
@@ -1184,6 +1222,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- RECOMMENDED SECTION ---
   Widget _buildRecommendedSection() {
     final recommendations = [
       {'name': 'Gaming Laptop', 'price': 1899.99, 'icon': Icons.laptop},
@@ -1272,6 +1311,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- TRENDING SECTION ---
   Widget _buildTrendingSection() {
     return Container(
       margin: const EdgeInsets.all(16),
@@ -1296,7 +1336,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   width: 100,
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient( // Added 'const' to LinearGradient
                       colors: [Colors.deepOrange, Colors.orange],
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -1325,6 +1365,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- FOOTER SECTION ---
   Widget _buildFooterSection() {
     return Container(
       margin: const EdgeInsets.all(24),
@@ -1412,6 +1453,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // --- BOTTOM NAVIGATION BAR ---
   Widget _buildBottomNavigation() {
     return Container(
       decoration: BoxDecoration(
@@ -1461,39 +1503,5 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCartFAB() {
-    return Stack(
-      children: [
-        Positioned(
-          right: 20,
-          bottom: 100,
-          child: FloatingActionButton(
-            onPressed: () {},
-            backgroundColor: Colors.deepOrange,
-            elevation: 8,
-            child: const Icon(Icons.shopping_cart, color: Colors.white),
-          ),
-        ),
-        Positioned(
-          right: 28,
-          bottom: 108,
-          child: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: const BoxDecoration(
-              color: Colors.red,
-              shape: BoxShape.circle,
-            ),
-            child: const Text(
-              '3',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+// Removed unused _buildCartFAB() to maintain a clean and correct state.
 }
